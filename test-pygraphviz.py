@@ -9,7 +9,8 @@ import networkx as nx
 import numpy as np
 from community import community_louvain
 import matplotlib.pyplot as plt
-from fa2 import ForceAtlas2
+#from fa2 import ForceAtlas2
+from forceatlas2.fa2.forceatlas2 import ForceAtlas2
 
 # Créez la fenêtre principale
 window = tk.Tk()
