@@ -9,8 +9,11 @@ import networkx as nx
 import numpy as np
 from community import community_louvain
 import matplotlib.pyplot as plt
-#from fa2 import ForceAtlas2
-from forceatlas2.fa2.forceatlas2 import ForceAtlas2
+from forceatlas2.fa2.forceatlas2 import ForceAtlas2 
+from fa2 import ForceAtlas2 as FA2
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import trimesh
 
 # Créez la fenêtre principale
 window = tk.Tk()
@@ -19,6 +22,7 @@ positions = None
 G = None
 node_colors = None
 node_sizes = None
+node_shapes = None
 comms = None
 # Créez un bouton "Ouvrir fichier"
 
@@ -45,8 +49,11 @@ def start_graph(filepath):
     node_colors = None 
     global node_sizes 
     node_sizes = None
+    global node_shapes
+    node_shapes = None
     global comms 
     comms = None
+
     # Chargez le fichier .dot dans un objet Graph
     graph = pgv.AGraph(filename=filepath)
     g = graph.to_undirected()
@@ -69,7 +76,7 @@ def start_graph(filepath):
         # Performance
         jitterTolerance=1.0,  # Tolerance
         barnesHutOptimize=True,
-        barnesHutTheta=10.0,
+        barnesHutTheta=15.0,
         multiThreaded=False,  # NOT IMPLEMENTED
 
         # Tuning
@@ -86,10 +93,15 @@ def start_graph(filepath):
 
     unique_coms = np.unique(list(comms.values()))
     #print(len(unique_coms))
+    
+    # recréation du bouton en intégrant le bon nombre de groupe 
     global combo2
     combo2 = ttk.Combobox(window, values=[i for i in range(len(unique_coms))])
     combo2.current(0)  # set the selected item
     combo2.grid(row=4,column=1)
+    
+    
+    # liste des couleurs que peuvent prendre les noeuds
     cmap = {
         0: 'red',
         1: 'teal',
@@ -100,6 +112,7 @@ def start_graph(filepath):
         6: 'blue'
     }
 
+    # choix de couleurs des noeuds selon l'id de leur groupe
     node_colors = [cmap[v % 7] for _, v in comms.items()]
 
     #print(comms)
@@ -140,12 +153,102 @@ def start_graph(filepath):
     degrees = dict(G.degree())
 
     # Définissez la taille des noeuds en fonction de leur degré
-    node_sizes = [((v/10) + 1) * 20 for v in degrees.values()]
+    node_sizes = [((v/2) + 1) * 5 for v in degrees.values()]
 
-def dessiner_graphe():
+    # test réalisé pour le passage en 3D
+    #print(positions)
+    #print(list(G.edges))
+    #print(node_colors)
+    #print(node_shapes)
+    #print(node_sizes)
+
+def dessiner_graphe_avec_forme_plus_lent():
     global positions 
     global node_colors
     global node_sizes
+    global node_shapes
+    global comms
+    global G
+
+    if(G == None):
+        return Exception
+
+    forceatlas2 = FA2(
+        # Behavior alternatives
+        outboundAttractionDistribution=True,  # Dissuade hubs
+        linLogMode=False,  # NOT IMPLEMENTED
+        adjustSizes=False,  # Prevent overlap (NOT IMPLEMENTED)
+        edgeWeightInfluence=1.0,
+
+        # Performance
+        jitterTolerance=1.0,  # Tolerance
+        barnesHutOptimize=True,
+        barnesHutTheta=15.0,
+        multiThreaded=False,  # NOT IMPLEMENTED
+
+        # Tuning
+        scalingRatio=float(entry1.get()),
+        strongGravityMode=False,
+        gravity=float(entry.get()),
+
+        # Log
+        verbose=True)
+
+    positions = forceatlas2.forceatlas2_networkx_layout(G, pos=positions, iterations=int(combo1.get()))
+    cmap = {
+        0: 'red',
+        1: 'teal',
+        2: 'yellow',
+        3: 'purple',
+        4: 'orange',
+        5: 'black',
+        6: 'blue'
+    }
+    i=0
+    for _,v in comms.items():
+        if v == int(combo2.get()):
+            node_colors[i]= combo4.get()
+            node_shapes[i]=combo3.get()
+        i=i+1
+    #node_colors = [combo4.get() if ((v%7)==int(combo2.get())) else node_colors[int(i)] for i, v in comms.items()]
+    #print(node_colors[1])
+    #print(combo2.get())
+    
+    # création de la figure et du plot 2D
+    # création de la figure et du plot 2D
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    i = 0
+    # affichage des noeuds
+    for node in G.nodes:
+        x, y = positions[node]
+        ax.scatter(x, y, c=node_colors[i], marker=node_shapes[i], s=100)
+        i += 1
+
+    # affichage des arêtes
+    for edge in G.edges:
+        x = [positions[edge[0]][0], positions[edge[1]][0]]
+        y = [positions[edge[0]][1], positions[edge[1]][1]]
+        ax.plot(x, y, c='black', linewidth=0.2)
+
+
+    # Masquez les axes
+    plt.axis('off')
+
+    # Enregistrer la figure au format SVG
+    #plt.savefig("figure.svg")
+
+    # Affichez la figure
+    plt.show()
+
+
+
+def dessiner_graphe_3D():
+    global positions 
+    global node_colors
+    global node_sizes
+    global node_shapes
     global comms
     global G
 
@@ -153,6 +256,105 @@ def dessiner_graphe():
         return Exception
 
     forceatlas2 = ForceAtlas2(
+        # Behavior alternatives
+        outboundAttractionDistribution=True,  # Dissuade hubs
+        linLogMode=False,  # NOT IMPLEMENTED
+        adjustSizes=False,  # Prevent overlap (NOT IMPLEMENTED)
+        edgeWeightInfluence=1.0,
+
+        # Performance
+        jitterTolerance=1.0,  # Tolerance
+        barnesHutOptimize=True,
+        barnesHutTheta=15.0,
+        multiThreaded=False,  # NOT IMPLEMENTED
+
+        # Tuning
+        scalingRatio=float(entry1.get()),
+        strongGravityMode=False,
+        gravity=float(entry.get()),
+
+        # Log
+        verbose=True)
+
+    positions = forceatlas2.forceatlas2_networkx_layout(G, pos=positions, iterations=int(combo1.get()))
+    cmap = {
+        0: 'red',
+        1: 'teal',
+        2: 'yellow',
+        3: 'purple',
+        4: 'orange',
+        5: 'black',
+        6: 'blue'
+    }
+    i=0
+    for _,v in comms.items():
+        if v == int(combo2.get()):
+            node_colors[i]= combo4.get()
+            node_shapes[i]=combo3.get()
+        i=i+1
+    #node_colors = [combo4.get() if ((v%7)==int(combo2.get())) else node_colors[int(i)] for i, v in comms.items()]
+    #print(node_colors[1])
+    #print(combo2.get())
+    
+    # création de la figure et du plot 2D
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    i = 0
+    # affichage des noeuds
+    for node in G.nodes:
+        x, y, z = positions[node]
+        ax.scatter(x, y, z, c=node_colors[i], marker=node_shapes[i], s=100)
+        i += 1
+
+    # affichage des arêtes
+    for edge in G.edges:
+        x = [positions[edge[0]][0], positions[edge[1]][0]]
+        y = [positions[edge[0]][1], positions[edge[1]][1]]
+        z = [positions[edge[0]][2], positions[edge[1]][2]]
+        ax.plot(x, y, z, c='black', linewidth=0.1)
+
+
+    #for node in G.nodes():
+    #    value = int(node)
+    #    print(value)
+    #    nx.draw_networkx_nodes(G, positions, nodelist=[node], node_size=node_sizes[value], node_color=node_colors[value], node_shape=node_shapes[value], alpha= 0.8)
+    #nx.draw_networkx_nodes(G, positions, node_size=node_sizes, node_color=node_colors,node_shape= combo3.get(), alpha =0.8)
+    #nx.draw_networkx_edges(G, positions, edge_color="black", alpha=1, style='dashed')
+    #print(positions)
+    #print("\n")
+    #nx.draw(G, positions, with_labels=False)
+    #x = [t[0] for t in positions.values()]
+    #y = [t[1] for t in positions.values()]
+
+    # Définissez les limites de l'axe des x et des y pour zoomer sur une partie du graphe
+    #ax.set_xlim(min(x) - 1000, max(x) + 1000)
+    #ax.set_ylim(min(y) - 1000, max(y) + 1000)
+
+    # Enregistrer les données de positions dans un fichier CSV
+    #np.savetxt("positions.csv", np.array(list(positions.values())), delimiter=",")  
+
+    # Masquez les axes
+    plt.axis('off')
+
+    # Enregistrer la figure au format SVG
+    #plt.savefig("figure.svg")
+
+    # Affichez la figure
+    plt.show()
+
+def dessiner_graphe():
+    global positions 
+    global node_colors
+    global node_sizes
+    global node_shapes
+    global comms
+    global G
+
+    if(G == None):
+        return Exception
+
+    forceatlas2 = FA2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
         linLogMode=False,  # NOT IMPLEMENTED
@@ -187,35 +389,16 @@ def dessiner_graphe():
     for _,v in comms.items():
         if v == int(combo2.get()):
             node_colors[i]= combo4.get()
+            node_shapes[i]= combo3.get()
         i=i+1
-    #node_colors = [combo4.get() if ((v%7)==int(combo2.get())) else node_colors[int(i)] for i, v in comms.items()]
-    #print(node_colors[1])
-    #print(combo2.get())
+    
+    
     # Dessinez le graphe
     nx.draw_networkx_edges(G, positions, edge_color="black", alpha=1, style='dashed')
-    #for node in G.nodes():
-    #    value = int(node)
-    #    print(value)
-    #    nx.draw_networkx_nodes(G, positions, nodelist=[node], node_size=node_sizes[value], node_color=node_colors[value], node_shape=node_shapes[value], alpha= 0.8)
     nx.draw_networkx_nodes(G, positions, node_size=node_sizes, node_color=node_colors,node_shape= combo3.get(), alpha =0.8)
-    #print(positions)
-    #print("\n")
-    #nx.draw(G, positions, with_labels=False)
-    #x = [t[0] for t in positions.values()]
-    #y = [t[1] for t in positions.values()]
-
-    # Définissez les limites de l'axe des x et des y pour zoomer sur une partie du graphe
-    #ax.set_xlim(min(x) - 1000, max(x) + 1000)
-    #ax.set_ylim(min(y) - 1000, max(y) + 1000)
-
-    # Enregistrer les données de positions dans un fichier CSV
-    #np.savetxt("positions.csv", np.array(list(positions.values())), delimiter=",")  
-
+    
     # Masquez les axes
     plt.axis('off')
-
-    # Enregistrer la figure au format SVG
-    #plt.savefig("figure.svg")
 
     # Affichez la figure
     plt.show()
@@ -316,8 +499,14 @@ combo4 = ttk.Combobox(window, values=['black','red','blue','grey'])
 combo4.current(0)  # set the selected item
 combo4.grid(row=4,column=3)
 
+button = tk.Button(window,text="generer graphe 3D", command=lambda:dessiner_graphe_3D())
+button.grid(row=5, column=0)
+
 button = tk.Button(window,text="generer graphe", command=lambda:dessiner_graphe())
-button.grid(row=5)
+button.grid(row=5, column=1)
+
+button = tk.Button(window,text="generer graphe avec forme plus lent", command=lambda:dessiner_graphe_avec_forme_plus_lent())
+button.grid(row=5, column=2)
 
 labelSVG = ttk.Label(window, text="si vous souhaiter sauvegarder la dernière version  au format svg sellectionner le nom du fichier:")
 labelSVG.grid(row=6,column=0)
