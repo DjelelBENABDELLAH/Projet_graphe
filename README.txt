@@ -1,7 +1,7 @@
 Introduction :
-Notre API de visualisation de grands graphes est une solution pratique pour visualiser des graphes massifs de manière efficace. Avec cette API, 
+Notre application de visualisation de grands graphes est une solution pratique pour visualiser des graphes massifs de manière efficace. Avec cette application, 
 les utilisateurs peuvent visualiser les graphes de manière interactive et exploratoire. Ce README est conçu pour vous aider à comprendre comment 
-utiliser l'API de visualisation de grands graphes.
+utiliser l'application de visualisation de grands graphes.
 
 Prérequis :
 Avant d'utiliser notre implémentation, il est nécessaire que Python soit installé sur votre machine. Pour exécuter le script, 
@@ -20,8 +20,8 @@ python main.py
 Cela va lancer l'application et vous permettre d'interagir avec le graphe.
 
 Conclusion :
-Notre API de visualisation de grands graphes est une solution pratique pour visualiser les graphes massifs de manière efficace. 
-Avec cette API, les utilisateurs peuvent visualiser les graphes de manière interactive et exploratoire. 
-Nous espérons que cette documentation vous a aidé à comprendre comment utiliser l'API de visualisation de grands graphes. 
+Notre application de visualisation de grands graphes est une solution pratique pour visualiser les graphes massifs de manière efficace. 
+Avec cette application, les utilisateurs peuvent visualiser les graphes de manière interactive et exploratoire. 
+Nous espérons que cette documentation vous a aidé à comprendre comment utiliser l'application de visualisation de grands graphes. 
 Si vous avez des questions ou des commentaires, n'hésitez pas à nous contacter.
 
