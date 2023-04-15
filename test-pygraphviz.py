@@ -19,7 +19,9 @@ import pyvista as pv
 
 # Créez la fenêtre principale
 window = tk.Tk()
-window.title("Visualisation de graphe")
+window.title("VisuGR3D")
+
+#on crée les différentes variables globales qui vont sauvegarder les données du graphes 
 positions = None
 pos_3D = None
 G = None
@@ -27,13 +29,14 @@ node_colors = None
 node_sizes = None
 node_shapes = None
 comms = None
-# Créez un bouton "Ouvrir fichier"
 
+# fonction utiliser par le bouton "Ouvrir fichier", qui attends un fichier .dot pour réalisé la première phase du programmes avec start_graph
 def open_file():
     filepath = filedialog.askopenfilename()
     # Appelez la fonction de dessin du graphe ici en passant filepath comme argument
     p = start_graph(filepath)
 
+# fonction qui vérifie que les valeurs entrées sont des valeurs flottantes
 def validate(P):
     if P.isdigit():
         return True
@@ -45,6 +48,7 @@ def validate(P):
     except ValueError:
         return False
 
+#fonction qui réinitialise les variables globales du graphes, en liant le fichier en entrée, puis réalisant la fonction force atlas 2D et 3D ainsi que la répartition en clique  issue de la méthode de louvain
 def start_graph(filepath):
     global positions
     positions = None 
@@ -64,13 +68,8 @@ def start_graph(filepath):
     g = graph.to_undirected()
     global G 
     G = nx.nx_agraph.from_agraph(g)
-    # Déterminez les clusters du graphe en utilisant la méthode de Louvain
-    #partition = community.best_partition(g)
-
-    # Affichez les clusters en ajoutant des couleurs aux noeuds du graphe
-    #for node, cluster in partition.items():
-    #    graph.get_node(node).attr['style'] = f'filled'
-    #    graph.get_node(node).attr['fillcolor'] = f'#{cluster:x}'
+    
+    #utilisation du force atlas adapté pour donnée les positions en 3D moins performant sans cython
     forceatlas2 = ForceAtlas2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -94,6 +93,7 @@ def start_graph(filepath):
 
     pos_3D = forceatlas2.forceatlas2_networkx_layout(G, pos=pos_3D, iterations=3)
     
+    #utilisation de la librairie force atlas sans modification pour générer les positions 2D
     forceatlas2 = FA2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -116,9 +116,10 @@ def start_graph(filepath):
         verbose=True) 
     positions = forceatlas2.forceatlas2_networkx_layout(G, pos=positions, iterations=50)
 
+    # Déterminez les clusters du graphe en utilisant la méthode de Louvain
     comms = community_louvain.best_partition(G)
-
     unique_coms = np.unique(list(comms.values()))
+    
     #print(len(unique_coms))
     
     # recréation du bouton en intégrant le bon nombre de groupe 
@@ -171,6 +172,7 @@ def start_graph(filepath):
     node_sizes = [(v * float(entryTaille.get())+5) for v in degrees.values()]
 
 
+#tentative de création d'une fonction pour implémenter une version du code ou l'on peut avoir différent forme pour différent cluster réussit mais ajout manuelle des noeud qui font chuter la rapidité du code qui n'est pas viable pour de grands graphes
 def dessiner_graphe_avec_forme_plus_lent():
     global positions 
     global node_colors
@@ -179,6 +181,7 @@ def dessiner_graphe_avec_forme_plus_lent():
     global comms
     global G
 
+    # on vérifie qu'un graph a été chargé
     if(G == None):
         return Exception
 
@@ -188,6 +191,7 @@ def dessiner_graphe_avec_forme_plus_lent():
     # Définissez la taille des noeuds en fonction de leur degré
     node_sizes = [(v * float(entryTaille.get())+5) for v in degrees.values()]
 
+    #on réalise les itérations en plus souhaité en repartant des anciennes positions
     forceatlas2 = FA2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -210,6 +214,8 @@ def dessiner_graphe_avec_forme_plus_lent():
         verbose=True)
 
     positions = forceatlas2.forceatlas2_networkx_layout(G, pos=positions, iterations=int(combo1.get()))
+    
+    #changement de couleur est de la forme du groupe choisit 
     cmap = {
         0: 'red',
         1: 'teal',
@@ -225,11 +231,12 @@ def dessiner_graphe_avec_forme_plus_lent():
             node_colors[i]= combo4.get()
             node_shapes[i]=combo3.get()
         i=i+1
+    
+    
     #node_colors = [combo4.get() if ((v%7)==int(combo2.get())) else node_colors[int(i)] for i, v in comms.items()]
     #print(node_colors[1])
     #print(combo2.get())
     
-    # création de la figure et du plot 2D
     # création de la figure et du plot 2D
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -242,7 +249,13 @@ def dessiner_graphe_avec_forme_plus_lent():
         i += 1
 
     # affichage des arêtes
-    nx.draw_networkx_edges(G, positions, edge_color="black", alpha=1, style='dashed')
+    #nx.draw_networkx_edges(G, positions, edge_color="black", linewidth=0.5 ,alpha=1, style='dashed')
+
+    # dessiner les arêtes
+    edges = np.array([(positions[edge[0]], positions[edge[1]]) for edge in G.edges])
+    edges = edges.reshape((-1, 2))
+    x, y = edges.T
+    ax.plot(x, y, c='black', linewidth=0.2)
 
 
     # Masquez les axes
@@ -255,7 +268,7 @@ def dessiner_graphe_avec_forme_plus_lent():
     plt.show()
 
 
-
+# fonction qui permet l'affichage en 3D du graph
 def dessiner_graphe_3D():
     global pos_3D
     global node_colors
@@ -264,6 +277,7 @@ def dessiner_graphe_3D():
     global comms
     global G
 
+    #on vérifie qu'un fichier a été chargé
     if(G == None):
         return Exception
 
@@ -273,6 +287,7 @@ def dessiner_graphe_3D():
     # Définissez la taille des noeuds en fonction de leur degré
     node_sizes = [(v * float(entryTaille.get())+5) for v in degrees.values()]
 
+    #utilisation de la version de force atlas modifier pour réaliser les itérations en plus demander par l'utilisateur
     forceatlas2 = ForceAtlas2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -295,6 +310,8 @@ def dessiner_graphe_3D():
         verbose=True)
 
     pos_3D = forceatlas2.forceatlas2_networkx_layout(G, pos=pos_3D, iterations=int(combo1.get()))
+    
+    #modification de la couleur et de la forme des noeuds du groupe choisit mais nodes_shapes ne peut être utilisé dans notre cas mais pourrait l'être dans une 
     cmap = {
         0: 'red',
         1: 'teal',
@@ -311,6 +328,8 @@ def dessiner_graphe_3D():
             node_shapes[i]=combo3.get()
         i=i+1
     
+
+    #code qui ajouter manuellement chaque noeud est permettait d'avoir des formes différentes mais est au périle de la performance
     # création de la figure et du plot 2D
     #fig = plt.figure()
     #ax = Axes3D(fig)
@@ -321,6 +340,13 @@ def dessiner_graphe_3D():
     #    x, y, z = positions[node]
     #    ax.scatter(x, y, z, c=node_colors[i], marker=node_shapes[i], s=node_sizes[i])
     #    i += 1
+    # affichage des arêtes
+    #for edge in G.edges:
+    #    x = [positions[edge[0]][0], positions[edge[1]][0]]
+    #    y = [positions[edge[0]][1], positions[edge[1]][1]]
+    #    z = [positions[edge[0]][2], positions[edge[1]][2]]
+    #    ax.plot(x, y, z, c='black', linewidth=0.1)
+
     # créer une figure et un axe 3D
     fig = plt.figure()
     ax = Axes3D(fig, auto_add_to_figure=False)
@@ -340,14 +366,6 @@ def dessiner_graphe_3D():
     x, y, z = edges.T
     ax.plot(x, y, z, c='black', linewidth=0.2)
     
-    # affichage des arêtes
-    #for edge in G.edges:
-    #    x = [positions[edge[0]][0], positions[edge[1]][0]]
-    #    y = [positions[edge[0]][1], positions[edge[1]][1]]
-    #    z = [positions[edge[0]][2], positions[edge[1]][2]]
-    #    ax.plot(x, y, z, c='black', linewidth=0.1)
-
-    
 
     # Masquez les axes
     #plt.axis('off')
@@ -358,6 +376,7 @@ def dessiner_graphe_3D():
     # Affichez la figure
     plt.show()
 
+#fonction qui permet l'affichage 2D du graphe 
 def dessiner_graphe():
     global positions
     global node_colors
@@ -366,6 +385,7 @@ def dessiner_graphe():
     global comms
     global G
 
+    #On vérifie qu'un fichier à bien été ouvert
     if(G == None):
         return Exception
 
@@ -375,6 +395,7 @@ def dessiner_graphe():
     # Définissez la taille des noeuds en fonction de leur degré
     node_sizes = [(v * float(entryTaille.get())+5) for v in degrees.values()]
 
+    # utilisation de l'algo force atlas pour déterminer les positions 2D de chaque noeud du graphe
     forceatlas2 = FA2(
         # Behavior alternatives
         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -397,6 +418,8 @@ def dessiner_graphe():
         verbose=True)
 
     positions = forceatlas2.forceatlas2_networkx_layout(G, pos=positions, iterations=int(combo1.get()))
+    
+    # modification de la couleur et de la forme des noeuds du groupe choisit
     cmap = {
         0: 'red',
         1: 'teal',
@@ -424,6 +447,7 @@ def dessiner_graphe():
     # Affichez la figure
     plt.show()
 
+# Fonction qui permet la sauvegarde au format SVG du graphe 2D
 def SaveSVG():
     
     # Dessinez le graphe
@@ -436,12 +460,17 @@ def SaveSVG():
     # Enregistrer la figure au format SVG
     plt.savefig(entrySVG.get())
 
+# Fonction qui devait permettre l'enregistrement 
 def SaveSTL():
     
     #code non correcte il a donc était supprimer.
 
     print("sauvegarde SVG-3D terminer")
 
+
+
+
+# creéation des divers éléments de la page ttk qui utilise pour certain les fonctons définies plus hauts
 lab1 = ttk.Label(window, text="parametres fa2 à selectionner avant l'ouverture du fichier:")
 lab1.grid(row=0)
 
@@ -509,9 +538,7 @@ combo1.grid(row=5,column=1)
 label2 = ttk.Label(window, text="id du groupe:")
 label2.grid(row=6, column=0)
 
-# Create a Combobox pour choisir l'idée du groupe que l'on souhaite modifier 
-#comms = community_louvain.best_partition(G)
-#num_groups = len(set(comms.values()))
+# Create a Combobox pour choisir l'idée du groupe que l'on souhaite modifier initialement vide aucun groupe
 combo2 = ttk.Combobox(window, values=[i for i in range(1)])
 combo2.current(0)  # set the selected item
 combo2.grid(row=6,column=1)
@@ -520,9 +547,7 @@ combo2.grid(row=6,column=1)
 label3 = ttk.Label(window, text="Forme:")
 label3.grid(row=6, column=2)
 
-# Create a Combobox pour choisir l'idée du groupe que l'on souhaite modifier 
-#comms = community_louvain.best_partition(G)
-#num_groups = len(set(comms.values()))
+# Create a Combobox contenant les formes disponibles sur matplotlib
 combo3 = ttk.Combobox(window, values=['o','s','^','v','>','<','d','p','h','8','.','+','X'])
 combo3.current(0)  # set the selected item
 combo3.grid(row=5,column=3)
@@ -531,9 +556,7 @@ combo3.grid(row=5,column=3)
 label4 = ttk.Label(window, text="couleur:")
 label4.grid(row=6, column=2)
 
-# Create a Combobox pour choisir l'idée du groupe que l'on souhaite modifier 
-#comms = community_louvain.best_partition(G)
-#num_groups = len(set(comms.values()))
+# Create a Combobox contenant une liste de couleur non-exhaustive
 combo4 = ttk.Combobox(window, values=['black','red','blue','grey'])
 combo4.current(0)  # set the selected item
 combo4.grid(row=6,column=3)
@@ -555,6 +578,7 @@ entrySVG.grid(row=8,column=1)
 buttonSVG = tk.Button(window,text="sauvegarde SVG", command=lambda:SaveSVG())
 buttonSVG.grid(row=9,column=1)
 
+#fonction non complète
 #sauvegarde en stl qui c'est soldé que par des erreus lors de la compilation ou des fichiers complétement vide
 #buttonSTL = tk.Button(window,text="sauvegarde STL", command=lambda:SaveSTL())
 #buttonSTL.grid(row=9,column=2)
