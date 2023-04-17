@@ -308,7 +308,7 @@ class Region:
         if len(self.nodes) < 2:
             linRepulsion(n, self.nodes[0], coefficient)
         else:
-            distance = sqrt((n.x - self.massCenterX) ** 2 + (n.y - self.massCenterY) ** 2)
+            distance = sqrt((n.x - self.massCenterX) ** 2 + (n.y - self.massCenterY) ** 2 + (n.z - self.massCenterZ) ** 2)
             if distance * theta > self.size:
                 linRepulsion_region(n, self, coefficient)
             else:
