@@ -29,22 +29,22 @@ Ensuite installer la liste de librairie suivante
 
 - mpl_toolkits avec la commande pip depuis votre terminal: pip install mplot3d
 
-Enfin il faudra récupéré le dossier forceatlas2 présent sur le git pour la partie 3D et le situé au même niveau que l'executable.
+Enfin il faudra récupérer le dossier forceatlas2 présent sur le git pour la partie 3D et le situer au même niveau que l'executable.
 
 
 Utilisation :
 Une fois que vous avez vérifié que Python est installé sur votre machine et que vous avez les librairies requises, 
-vous pouvez exécuter notre script principal pour utiliser l'API de visualisation de grands graphes.
+vous pouvez exécuter notre script principal pour utiliser l'application de visualisation de grands graphes.
 
 Pour commencer, vous devez importer les données du graphe que vous souhaitez visualiser. 
-Les données du graphe doivent être dans un format compatible avec notre API '.dot'. Ensuite, vous pouvez lancer le script principal 
+Les données du graphe doivent être dans un format compatible avec notre application '.dot'. Ensuite, vous pouvez lancer le script principal 
 pour afficher le graphe à l'aide de la commande suivante :
 
 python main.py
 
 Cela va lancer l'application et vous permettre d'interagir avec le graphe.
 
-Pour plus de détaille concernant les possibilités je vous redirige vers la vidéo.
+Pour plus de détails concernant les possibilités nous vous invitons à regarder la vidéo de présentation.
 
 Conclusion :
 Notre application de visualisation de grands graphes est une solution pratique pour visualiser les graphes massifs de manière efficace. 
