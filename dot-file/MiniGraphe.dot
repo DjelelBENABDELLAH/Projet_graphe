@@ -1,0 +1,15 @@
+digraph G {
+
+
+  start -> preprocessing
+  preprocessing -> VS
+  x -> a
+  x -> encoding
+  a -> merge
+  b -> merge
+  merge -> y
+  y -> end
+
+
+
+}
