@@ -29,7 +29,7 @@ Ensuite installer la liste de librairie suivante
 
 - mpl_toolkits avec la commande pip depuis votre terminal: pip install mplot3d
 
-Enfin il faudra récupéré le dossier fa2 présent sur le git pour la partie 3D et le situé au même niveau que l'executable.
+Enfin il faudra récupéré le dossier forceatlas2 présent sur le git pour la partie 3D et le situé au même niveau que l'executable.
 
 
 Utilisation :
