@@ -14,7 +14,7 @@ Sur Ubuntu/Debian : sudo apt-get install python3-tk
 Sur MacOS : tkinter est pré-installé avec Python
 Sur Windows : tkinter est pré-installé avec Python
 
-Ensuite installer la liste de librairie suivante
+Ensuite installer la liste de librairie suivante ou executer le script "preinstallation.py"
 - pygraphviz avec la commande pip depuis votre terminal: pip install pygraphviz==1.10
 
 - community avec la commande pip depuis votre terminal: pip install python-louvain==0.16
@@ -36,7 +36,7 @@ Utilisation :
 Une fois que vous avez vérifié que Python est installé sur votre machine et que vous avez les librairies requises, 
 vous pouvez exécuter notre script principal pour utiliser l'application de visualisation de grands graphes.
 
-Pour commencer, vous devez importer les données du graphe que vous souhaitez visualiser. 
+Pour commencer, vous devez importer les données du graphe que vous souhaitez visualiser. Un jeu de tests est disponible dans le dossier dot-file.
 Les données du graphe doivent être dans un format compatible avec notre application '.dot'. Ensuite, vous pouvez lancer le script principal 
 pour afficher le graphe à l'aide de la commande suivante :
 
